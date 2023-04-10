@@ -1,0 +1,5 @@
+nodePing:
+  nodes:
+    cluster_targets: []
+      # < dest node name >: < node ip >
+      # master_node_1: 100.126.10.213

@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-ping
+  namespace: monitoring
+  labels:
+    tier: monitoring
+    app: node-ping
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      name: node-ping
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: node-ping
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      terminationGracePeriodSeconds: 0
+      tolerations:
+      - operator: "Exists"
+      serviceAccountName: node-ping
+      containers:
+      - resources:
+          requests:
+            cpu: 0.10
+        image: atalabirchuk/node-ping-test:0.0.7
+        imagePullPolicy: Always
+        name: node-ping
+        env:
+          - name: MY_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: PROMETHEUS_TEXTFILE_DIR
+            value: /node-exporter-textfile/
+          - name: PROMETHEUS_TEXTFILE_PREFIX
+            value: monitoring-ping_
+        volumeMounts:
+          - name: textfile
+            mountPath: /node-exporter-textfile
+          - name: config
+            mountPath: /config
+      volumes:
+        - name: textfile
+          hostPath:
+            path: /var/run/node-exporter-textfile
+        - name: config
+          configMap:
+            name: node-ping-config
