@@ -19,6 +19,7 @@ spec:
       labels:
         name: node-ping
       annotations:
+        # TODO: add configmap annotations change
         rollme: {{ randAlphaNum 5 | quote }}
     spec:
       terminationGracePeriodSeconds: 0
@@ -37,10 +38,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: CONFIG_PATH
+            value: "/config/targets.json"
           - name: PROMETHEUS_TEXTFILE_DIR
-            value: /node-exporter-textfile/
+            value: "/node-exporter-textfile/"
           - name: PROMETHEUS_TEXTFILE_PREFIX
-            value: monitoring-ping_
+            value: "monitoring-ping_"
         volumeMounts:
           - name: textfile
             mountPath: /node-exporter-textfile
