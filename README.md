@@ -17,7 +17,10 @@ prometheus-node-exporter:
 2. Build docker image
 - command for mac M1 proc
 `docker build --progress=plain --platform=linux/amd64 -t <you registry tag> -f Dockerfile .`
-3. Add map values for helm values.yaml
+3. docker images tags:
+- development: `atalabirchuk/fpinger:development-latest`
+- stable: `atalabirchuk/fpinger:main-latest`
+4. Add map values for helm values.yaml
 - example values.yaml
 ```
 nodePing:
@@ -30,7 +33,7 @@ nodePing:
       worker-node-2: 100.126.11.101
       worker-node-3: 100.126.11.103
 ```
-4. Helm install
+5. Helm install
 ```
 helm upgrade --install ping-exporter k8s/helm
 ```
