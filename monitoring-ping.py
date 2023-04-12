@@ -54,41 +54,41 @@ prom_metrics_cluster = {"sent": prometheus_client.Counter('kube_node_ping_packet
                                                         ['destination_node', 'destination_node_ip_address'],
                                                         registry=registry)}
 
-
 prom_metrics_external = {"sent": prometheus_client.Counter('external_ping_packets_sent_total',
                                                            'ICMP packets sent',
                                                            ['destination_name', 'destination_host'],
                                                            registry=registry),
-                        "received": prometheus_client.Counter('external_ping_packets_received_total',
-                                                              'ICMP packets received',
-                                                              ['destination_name', 'destination_host'],
-                                                              registry=registry),
-                        "rtt": prometheus_client.Counter('external_ping_rtt_milliseconds_total',
-                                                         'round-trip time',
-                                                         ['destination_name', 'destination_host'],
-                                                         registry=registry),
-                        "min": prometheus_client.Gauge('external_ping_rtt_min', 'minimum round-trip time',
-                                                       ['destination_name', 'destination_host'],
-                                                       registry=registry),
-                        "max": prometheus_client.Gauge('external_ping_rtt_max', 'maximum round-trip time',
-                                                       ['destination_name', 'destination_host'],
-                                                       registry=registry),
-                        "mdev": prometheus_client.Gauge('external_ping_rtt_mdev',
-                                                        'mean deviation of round-trip times',
+                         "received": prometheus_client.Counter('external_ping_packets_received_total',
+                                                               'ICMP packets received',
+                                                               ['destination_name', 'destination_host'],
+                                                               registry=registry),
+                         "rtt": prometheus_client.Counter('external_ping_rtt_milliseconds_total',
+                                                          'round-trip time',
+                                                          ['destination_name', 'destination_host'],
+                                                          registry=registry),
+                         "min": prometheus_client.Gauge('external_ping_rtt_min', 'minimum round-trip time',
                                                         ['destination_name', 'destination_host'],
-                                                        registry=registry)}
+                                                        registry=registry),
+                         "max": prometheus_client.Gauge('external_ping_rtt_max', 'maximum round-trip time',
+                                                        ['destination_name', 'destination_host'],
+                                                        registry=registry),
+                         "mdev": prometheus_client.Gauge('external_ping_rtt_mdev',
+                                                         'mean deviation of round-trip times',
+                                                         ['destination_name', 'destination_host'],
+                                                         registry=registry)}
 
 
 def validate_envs():
-    envs = {"MY_NODE_NAME": os.getenv("MY_NODE_NAME", default="test_node"),
-            "PROMETHEUS_TEXTFILE_DIR": os.getenv("PROMETHEUS_TEXTFILE_DIR", default="test/"),
-            "PROMETHEUS_TEXTFILE_PREFIX": os.getenv("PROMETHEUS_TEXTFILE_PREFIX", default="monitoring-ping_")}
+    app_env_variables = {"MY_NODE_NAME": os.getenv("MY_NODE_NAME", default="test_node"),
+                         "PROMETHEUS_TEXTFILE_DIR": os.getenv("PROMETHEUS_TEXTFILE_DIR", default="test/"),
+                         "PROMETHEUS_TEXTFILE_PREFIX": os.getenv("PROMETHEUS_TEXTFILE_PREFIX",
+                                                                 default="monitoring-ping_")}
 
-    for key, value in envs.items():
+    for key, value in app_env_variables.items():
         if not value:
             raise ValueError("{} environment variable is empty".format(key))
 
-    return envs
+    return app_env_variables
 
 
 @prometheus_exceptions_counter.count_exceptions()
@@ -108,12 +108,12 @@ def compute_results(results):
         positive_results = [float(x) for x in splitted if x != "-"]
         if len(positive_results) > 0:
             computed[host] = {"sent": 30, "received": len(positive_results),
-                            "rtt": sum(positive_results),
-                            "max": max(positive_results), "min": min(positive_results),
-                            "mdev": statistics.pstdev(positive_results)}
+                              "rtt": sum(positive_results),
+                              "max": max(positive_results), "min": min(positive_results),
+                              "mdev": statistics.pstdev(positive_results)}
         else:
             computed[host] = {"sent": 30, "received": len(positive_results), "rtt": 0,
-                            "max": 0, "min": 0, "mdev": 0}
+                              "max": 0, "min": 0, "mdev": 0}
     if not len(computed):
         raise ValueError("regex match\"{}\" found nothing in fping output \"{}\"".format(FPING_REGEX, results))
     return computed
@@ -170,10 +170,13 @@ def get_param_cli():
 
 def get_fping_binary():
     if platform == "linux" or platform == "linux2":
-        fping_binary = "/usr/sbin/fping"
+        path = "/usr/sbin/fping"
     elif platform == "darwin":
-        fping_binary = "/opt/homebrew/bin/fping"
-    return fping_binary
+        path = "/opt/homebrew/bin/fping"
+    else:
+        exit()
+    return path
+
 
 if __name__ == '__main__':
 
@@ -196,7 +199,8 @@ if __name__ == '__main__':
             for metric in labeled_prom_metrics["cluster_targets"]:
                 # print(metric)
                 metric_name, metric_ip = metric["node_name"], metric["ip"]
-                if (metric_name, metric_ip) not in [(node_name, node_ip) for node_name, node_ip in config['cluster_targets'].items()]:
+                if (metric_name, metric_ip) not in [(node_name, node_ip) for node_name, node_ip in
+                                                    config['cluster_targets'].items()]:
                     for k, v in prom_metrics_cluster.items():
                         v.remove(metric_name, metric_ip)
 
@@ -205,7 +209,6 @@ if __name__ == '__main__':
         #         if (metric["target_name"], metric["host"]) not in [(target["name"], target["host"]) for target in config['external_targets']]:
         #             for k, v in prom_metrics_external.items():
         #                 v.remove(metric["target_name"], metric["host"])
-
 
         labeled_prom_metrics = {"cluster_targets": []}
 
@@ -234,9 +237,9 @@ if __name__ == '__main__':
         #     labeled_prom_metrics["external_targets"].append(metrics)
         fping_binary = get_fping_binary()
         args = get_param_cli()
-        out = call_fping([prom_metric["ip"]   for prom_metric in labeled_prom_metrics["cluster_targets"]],
+        out = call_fping([prom_metric["ip"] for prom_metric in labeled_prom_metrics["cluster_targets"]],
                          args, fping_binary)
-                         #[prom_metric["host"] for prom_metric in labeled_prom_metrics["external_targets"]])
+        # [prom_metric["host"] for prom_metric in labeled_prom_metrics["external_targets"]])
         computed = compute_results(out)
 
         for dimension in labeled_prom_metrics["cluster_targets"]:
@@ -263,4 +266,5 @@ if __name__ == '__main__':
         #     dimension["prom_metrics"]["mdev"].set(result["mdev"])
 
         prometheus_client.write_to_textfile(
-            envs["PROMETHEUS_TEXTFILE_DIR"] + envs["PROMETHEUS_TEXTFILE_PREFIX"] + envs["MY_NODE_NAME"] + ".prom", registry)
+            envs["PROMETHEUS_TEXTFILE_DIR"] + envs["PROMETHEUS_TEXTFILE_PREFIX"] + envs["MY_NODE_NAME"] + ".prom",
+            registry)
