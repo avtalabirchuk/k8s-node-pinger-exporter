@@ -164,7 +164,7 @@ def get_param_cli():
                         )
     args = parser.parse_args()
 
-    print(f'{args}')
+    # print(f'{args}')
     return args
 
 

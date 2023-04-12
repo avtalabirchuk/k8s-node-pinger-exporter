@@ -34,3 +34,11 @@ nodePing:
 ```
 helm upgrade --install ping-exporter k8s/helm
 ```
+
+# command line arguments 
+  -h, --help            show this help message and exit  
+  -p PERIOD, --period PERIOD default: 1000. MSEC: interval between ping packets to one target (in ms)  
+  -C VCOUNT, --vcount VCOUNT  default: 30. COUNT mode: send N pings to each target  
+  -B BACKOFF, --backoff BACKOFF default: 1 COUNT: set exponential backoff factor to N  
+  -r RETRY, --retry RETRY default: 1, number of retries  
+  -b SIZE, --size SIZE  default: 100. BYTES: amount of ping data to send, in bytes  

@@ -19,20 +19,17 @@ spec:
       labels:
         name: node-ping
       annotations:
-        # TODO: add configmap annotations change
-        rollme: {{ randAlphaNum 5 | quote }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       terminationGracePeriodSeconds: 0
       tolerations:
       - operator: "Exists"
       serviceAccountName: node-ping
       containers:
-      - resources:
-          requests:
-            cpu: 0.10
-        image: atalabirchuk/node-ping-test:0.0.7
+      - image: atalabirchuk/fpinger:main-latest
         imagePullPolicy: Always
         name: node-ping
+        # args: ["-b", "1000"] example use args
         env:
           - name: MY_NODE_NAME
             valueFrom:
@@ -49,6 +46,9 @@ spec:
             mountPath: /node-exporter-textfile
           - name: config
             mountPath: /config
+      - resources:
+          requests:
+            cpu: 0.10
       volumes:
         - name: textfile
           hostPath:
