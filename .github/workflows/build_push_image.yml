@@ -5,9 +5,9 @@ name: build and push image
 on:
   workflow_call:
     outputs:
-      release_tag:
-        description: "Release tag"
-        value: ${{ jobs.build-and-push-image.outputs.release_tag }}
+      release_hash:
+        description: "Release hash"
+        value: ${{ jobs.build-and-push-image.outputs.release_hash }}
   push:
     branches: [ "main", "development" ]
 #    tags:
@@ -17,7 +17,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     outputs:
-      release_tag: ${{ steps.release_tag.outputs.release_tag }}
+      release_hash: ${{ steps.release_hash.outputs.release_hash }}
 
     steps:
 
@@ -39,17 +39,30 @@ jobs:
     - name: Get hash commit
       run: echo "GIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
 
-    - name: Release tag
-      run: echo "RELEASE_TAG=${{ env.RELEASE_VERSION }}-${{ env.GIT_HASH }}" >> $GITHUB_ENV
+    - name: Release hash
+      run: echo "RELEASE_HASH=${{ env.RELEASE_VERSION }}-${{ env.GIT_HASH }}" >> $GITHUB_ENV
 
-    - id: release_tag
-      run: echo "::set-output name=release_tag::${{ env.RELEASE_TAG }}"
+    - name: Release latest
+      run: echo "RELEASE_LATEST=${{ env.RELEASE_VERSION }}-latest" >> $GITHUB_ENV
 
-    - name: Build & push Docker image
+    - id: release_hash
+      run: echo "::set-output name=release_hash::${{ env.RELEASE_HASH }}"
+
+    - name: Build & push Docker image hash
       uses: mr-smithers-excellent/docker-build-push@v3
       with:
         image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}
-        tag: ${{ env.RELEASE_TAG }}
+        tag: ${{ env.RELEASE_HASH }}
+        registry: ${{ secrets.DOCKER_REGISTRY }}
+        dockerfile: Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build & push Docker image latest
+      uses: mr-smithers-excellent/docker-build-push@v3
+      with:
+        image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}
+        tag: ${{ env.RELEASE_LATEST }}
         registry: ${{ secrets.DOCKER_REGISTRY }}
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
