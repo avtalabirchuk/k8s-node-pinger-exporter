@@ -1,0 +1,59 @@
+# This is a basic workflow that is manually triggered
+
+name: build and push image
+
+on:
+#  workflow_call:
+#    outputs:
+#      release_hash:
+#        description: "Release hash"
+#        value: ${{ jobs.build-and-push-image.outputs.release_hash }}
+  push:
+    branches: [ "main", "development" ]
+#    tags:
+#      - '*'
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+#    outputs:
+#      release_hash: ${{ steps.release_hash.outputs.release_hash }}
+
+    steps:
+
+#    - name: Setup insecure registry
+#      shell: bash
+#      run: |
+#        echo '{"insecure-registries" : ["${{ secrets.DOCKER_REGISTRY_DEV }}"]}' | sudo tee /etc/docker/daemon.json
+#
+#    - name: Restart docker
+#      shell: bash
+#      run: sudo systemctl restart docker
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Get release version
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+    - name: Get hash commit
+      run: echo "GIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+
+    - name: Release hash
+      run: echo "RELEASE_HASH=${{ env.RELEASE_VERSION }}-${{ env.GIT_HASH }}" >> $GITHUB_ENV
+
+    - name: Release latest
+      run: echo "RELEASE_LATEST=${{ env.RELEASE_VERSION }}-latest" >> $GITHUB_ENV
+
+    - id: release_hash
+      run: echo "::set-output name=release_hash::${{ env.RELEASE_HASH }}"
+
+    - name: Build & push Docker image hash
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}
+        tags: ${{ env.RELEASE_HASH }}, ${{ env.RELEASE_LATEST }}
+        registry: ${{ secrets.DOCKER_REGISTRY }}
+        dockerfile: Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}

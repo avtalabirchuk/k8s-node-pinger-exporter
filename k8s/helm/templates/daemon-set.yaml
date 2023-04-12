@@ -19,33 +19,36 @@ spec:
       labels:
         name: node-ping
       annotations:
-        rollme: {{ randAlphaNum 5 | quote }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       terminationGracePeriodSeconds: 0
       tolerations:
       - operator: "Exists"
       serviceAccountName: node-ping
       containers:
-      - resources:
-          requests:
-            cpu: 0.10
-        image: atalabirchuk/node-ping-test:0.0.7
+      - image: atalabirchuk/fpinger:main-latest
         imagePullPolicy: Always
         name: node-ping
+        # args: ["-b", "1000"] example use args
         env:
           - name: MY_NODE_NAME
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: CONFIG_PATH
+            value: "/config/targets.json"
           - name: PROMETHEUS_TEXTFILE_DIR
-            value: /node-exporter-textfile/
+            value: "/node-exporter-textfile/"
           - name: PROMETHEUS_TEXTFILE_PREFIX
-            value: monitoring-ping_
+            value: "monitoring-ping_"
         volumeMounts:
           - name: textfile
             mountPath: /node-exporter-textfile
           - name: config
             mountPath: /config
+      - resources:
+          requests:
+            cpu: 0.10
       volumes:
         - name: textfile
           hostPath:

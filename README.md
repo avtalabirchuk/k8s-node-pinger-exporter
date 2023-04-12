@@ -17,7 +17,10 @@ prometheus-node-exporter:
 2. Build docker image
 - command for mac M1 proc
 `docker build --progress=plain --platform=linux/amd64 -t <you registry tag> -f Dockerfile .`
-3. Add map values for helm values.yaml
+3. docker images tags:
+- development: `atalabirchuk/fpinger:development-latest`
+- stable: `atalabirchuk/fpinger:main-latest`
+4. Add map values for helm values.yaml
 - example values.yaml
 ```
 nodePing:
@@ -30,7 +33,15 @@ nodePing:
       worker-node-2: 100.126.11.101
       worker-node-3: 100.126.11.103
 ```
-4. Helm install
+5. Helm install
 ```
 helm upgrade --install ping-exporter k8s/helm
 ```
+
+# command line arguments 
+  -h, --help            show this help message and exit  
+  -p PERIOD, --period PERIOD default: 1000. MSEC: interval between ping packets to one target (in ms)  
+  -C VCOUNT, --vcount VCOUNT  default: 30. COUNT mode: send N pings to each target  
+  -B BACKOFF, --backoff BACKOFF default: 1 COUNT: set exponential backoff factor to N  
+  -r RETRY, --retry RETRY default: 1, number of retries  
+  -b SIZE, --size SIZE  default: 100. BYTES: amount of ping data to send, in bytes  
