@@ -3,11 +3,11 @@
 name: build and push image
 
 on:
-  workflow_call:
-    outputs:
-      release_hash:
-        description: "Release hash"
-        value: ${{ jobs.build-and-push-image.outputs.release_hash }}
+#  workflow_call:
+#    outputs:
+#      release_hash:
+#        description: "Release hash"
+#        value: ${{ jobs.build-and-push-image.outputs.release_hash }}
   push:
     branches: [ "main", "development" ]
 #    tags:
@@ -16,8 +16,8 @@ on:
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    outputs:
-      release_hash: ${{ steps.release_hash.outputs.release_hash }}
+#    outputs:
+#      release_hash: ${{ steps.release_hash.outputs.release_hash }}
 
     steps:
 
