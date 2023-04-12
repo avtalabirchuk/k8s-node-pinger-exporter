@@ -9,8 +9,9 @@ on:
         description: "Release tag"
         value: ${{ jobs.build-and-push-image.outputs.release_tag }}
   push:
-    tags:
-      - '*'
+    branches: [ "main", "development" ]
+#    tags:
+#      - '*'
 
 jobs:
   build-and-push-image:
