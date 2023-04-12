@@ -18,8 +18,8 @@ prometheus-node-exporter:
 - command for mac M1 proc
 `docker build --progress=plain --platform=linux/amd64 -t <you registry tag> -f Dockerfile .`
 3. docker images tags:
-- development: `atalabirchuk/fpinger:development-latest`
-- stable: `atalabirchuk/fpinger:main-latest`
+- development: `atalabirchuk/fpinger-development:latest`
+- stable: `atalabirchuk/fpinger-main:latest`
 4. Add map values for helm values.yaml
 - example values.yaml
 ```

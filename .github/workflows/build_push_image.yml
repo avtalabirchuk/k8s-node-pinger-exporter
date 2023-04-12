@@ -39,20 +39,14 @@ jobs:
     - name: Get hash commit
       run: echo "GIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
 
-    - name: Release hash
-      run: echo "RELEASE_HASH=${{ env.RELEASE_VERSION }}-${{ env.GIT_HASH }}" >> $GITHUB_ENV
-
-    - name: Release latest
-      run: echo "RELEASE_LATEST=${{ env.RELEASE_VERSION }}-latest" >> $GITHUB_ENV
-
     - id: release_hash
       run: echo "::set-output name=release_hash::${{ env.RELEASE_HASH }}"
 
     - name: Build & push Docker image hash
       uses: mr-smithers-excellent/docker-build-push@v6
       with:
-        image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}
-        tags: ${{ env.RELEASE_HASH }}, ${{ env.RELEASE_LATEST }}
+        image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}-${{env.RELEASE_VERSION }}
+        tags: ${{ env.GIT_HASH }}, latest
         registry: ${{ secrets.DOCKER_REGISTRY }}
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
