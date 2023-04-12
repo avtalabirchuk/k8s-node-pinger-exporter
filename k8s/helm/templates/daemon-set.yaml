@@ -26,7 +26,7 @@ spec:
       - operator: "Exists"
       serviceAccountName: node-ping
       containers:
-      - image: atalabirchuk/fpinger:main-latest
+      - image: atalabirchuk/fpinger-main:latest
         imagePullPolicy: Always
         name: node-ping
         # args: ["-b", "1000"] example use args
